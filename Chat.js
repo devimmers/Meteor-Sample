@@ -128,6 +128,7 @@ if(Meteor.isClient) {
   //Whisper Action
   Template.users_names.events = {
     'click #users a': function(event) {
+      event.preventDefault();
       var message = document.getElementById('messageBox'),
           name    = event.currentTarget.getAttribute("href");
       message.value = name + ': ';
