@@ -3,10 +3,27 @@
 </head>
 
 <body>
-	{{> entry}}
-
-	{{> messages}}
+    {{> register}}
+	{{> chat}}
 </body>
+
+<template name="register">
+  {{#unless signed_in}}
+  <div id="register_window">
+    <form id="register_form">
+      <div id="warning">{{warning}}</div>
+      <label>Username: </label>
+      <input type="text" id="register" placeholder="Enter Username" />
+    </form>
+  </div>
+  {{/unless}}
+</template>
+
+<template name="chat">
+	{{> users}}
+	{{> messages}}
+	{{> entry}}
+</template>
 
 <template name="entry">
 	<p>
@@ -17,6 +34,14 @@
 	</p>
 </template>
 
+<template name="users">
+    <div id="users">
+      {{#each users}}
+        {{name}}<br />
+      {{/each}}
+    </div>
+</template>
+
 <template name="messages">
 	{{#each messages}}
 		{{> message}}
@@ -24,5 +49,5 @@
 </template>
 
 <template name="message">
-	<p><strong>{{name}}:</strong>{{message}}</p>
+	<p>{{time}}: <strong>{{name}}:</strong>{{message}}</p>
 </template>

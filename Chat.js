@@ -1,20 +1,20 @@
 Messages = new Meteor.Collection('messages');
 
-if (Meteor.isClient) {
-    ////////// Helpers for in-place editing //////////
-  
+if(Meteor.isClient){
+  ////////// Helpers for in-place editing //////////
+
   // Returns an event_map key for attaching "ok/cancel" events to
   // a text input (given by selector)
   var okcancel_events = function (selector) {
     return 'keyup '+selector+', keydown '+selector+', focusout '+selector;
   };
-  
+
   // Creates an event handler for interpreting "escape", "return", and "blur"
   // on a text field and calling "ok" or "cancel" callbacks.
   var make_okcancel_handler = function (options) {
     var ok = options.ok || function () {};
     var cancel = options.cancel || function () {};
-  
+
     return function (evt) {
       if (evt.type === "keydown" && evt.which === 27) {
         // escape = cancel
@@ -50,9 +50,9 @@ if (Meteor.isClient) {
   //Send message function
   function sendMessage(text) {
       var nameEntry = document.getElementById('name');
-      if (nameEntry.value) {
-          var ts = Date.now() / 1000;
-          Messages.insert({name:nameEntry.value, message:text, time: ts});
+      var ts = new Date().toLocaleTimeString();
+      if (nameEntry.value) {          
+          Messages.insert({name:nameEntry.value, message:text, time: ts });
       }
   }
 
@@ -67,17 +67,18 @@ if (Meteor.isClient) {
     }
   };
 
+  var listsHandle = Meteor.subscribe('messages', function () {
+  // if (!Session.get('list_id')) {
+    //var list = Lists.findOne({}, {sort: {name: 1}});
+   // if (list)
+    //  Router.setList(list._id);
+  //}
+  });
+
 
   //Show all messages
   Template.messages.messages = function () {
     return Messages.find({}, {sort:{time:-1}});
   }
-};
 
-
-
-
-if (Meteor.isServer) {
-  Meteor.startup(function () {
-  });
 }
