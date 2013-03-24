@@ -3,8 +3,12 @@
 </head>
 
 <body>
-    {{> register}}
-	{{> chat}}
+  <div class="container">
+    <div class="row">
+      <div class="span4">{{> register}}</div>
+      <div class="span8">{{> chat}}</div>
+    </div>
+  </div>
 </body>
 
 <template name="register">
@@ -12,9 +16,15 @@
   <div id="register_window">
     <form id="register_form">
       <div id="warning">{{warning}}</div>
-      <label>Username: </label>
-      <input type="text" id="register" placeholder="Enter Username" />
-      <button id="login-btn">Login</button>
+      <div class="control-group">
+        <label>Username: </label>
+          <div class="controls">
+            <div class="input-append">
+              <input type="text" id="register" placeholder="Enter Username" />
+              <button id="login-btn" class="btn btn-success">Login</button>
+            </div>
+          </div>
+      </div>
     </form>
   </div>
   {{/unless}}
@@ -29,11 +39,11 @@
 </template>
 
 <template name="entry">
-	<p>
-		<input type="text" id="messageBox" placeholder="Your Message" />
-		<button id="send-message">Send</button>
-		<button id="clear-messages">Clear</button>
-	</p>
+	<div class="input-append">
+		<input type="text" id="messageBox" placeholder="Your Message" class="span6"/>
+		<button id="send-message" class="btn btn-primary">Send</button>
+		<button id="clear-messages" class="btn">Clear</button>
+	</div>
 </template>
 
 <template name="users_names">
