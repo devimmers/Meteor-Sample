@@ -1,13 +1,11 @@
 Messages = new Meteor.Collection('messages');
 Users = new Meteor.Collection("users");
-Local_message = new Meteor.Collection('Local_message');
 
 if(Meteor.isClient) {
 
-  Meteor.subscribe("messages");
+  var subscr = Meteor.subscribe("messages");
   Meteor.subscribe("users");
 
-  Local_message = Messages;
   ////////// Helpers for in-place editing //////////
   // Returns an event_map key for attaching "ok/cancel" events to
   // a text input (given by selector)
@@ -45,6 +43,7 @@ if(Meteor.isClient) {
       }
 
       $('#messageBox').val('');
+
       event.preventDefault();
       event.stopPropagation();
   }
@@ -70,8 +69,13 @@ if(Meteor.isClient) {
   Template.entry.events['click #clear-messages'] = function() {
     if (confirm('Are you sure you want to remove all todo items from the current list? This action cannot be undone.')) {
        console.log("clear");
-       Meteor.call('clear_messages', Local_message);
-       Template.messages.messages;
+       var a = Messages.find();
+       a.forEach(function (post) {
+         Messages.remove(post._id);
+       });
+    
+    //   subscr.stop();
+       
     }
   };
 
@@ -151,7 +155,7 @@ if(Meteor.isClient) {
 
   //Show all messages
   Template.messages.messages = function () {
-    return Local_message.find({}, {sort:{time:-1}});
+    return Messages.find({}, {sort:{time:-1}});
   }
 
   //Checking for leaving users
@@ -234,9 +238,6 @@ if (Meteor.is_server) {
         Messages.insert({name: user.name, message: msg, time: new Date().toLocaleTimeString()});
       }
     },
-    clear_messages: function(collection) {
-  //    collection.remove({});
-    }
   });
 
 }
