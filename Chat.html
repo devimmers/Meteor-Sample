@@ -32,7 +32,11 @@
 <template name="chat">
 	{{#if signed_in}}
 		<div class="row">
-			<div class="span3">{{> users_names}}</div>
+			<div class="span3">{{> users_names}}
+				<div>
+					<button type="button" id="logout-btn">Logout</button>
+				</div>
+			</div>
 			<div class="span9">{{> messages}}</div>
 		</div>
 		<div class="row">

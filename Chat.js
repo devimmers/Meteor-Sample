@@ -35,7 +35,21 @@ if(Meteor.isClient) {
     };
   };
 
+  //Send message function
+  function sendMessage(text) {
+      var ts = new Date().toLocaleTimeString();    
+      
+      if (text !== '') {        
+        Meteor.call('add_msg', Session.get("user_id"), text);
+      }
 
+      $('#messageBox').val('');
+      event.preventDefault();
+      event.stopPropagation();
+  }
+
+
+  //Events Area
   Template.entry.events = {};
 
   //Enter Send Action
@@ -51,19 +65,6 @@ if(Meteor.isClient) {
       var message = document.getElementById('messageBox');
       sendMessage(message.value);
   };
-
-  //Send message function
-  function sendMessage(text) {
-      var ts = new Date().toLocaleTimeString();    
-      
-      if (text !== '') {        
-        Meteor.call('add_msg', Session.get("user_id"), text);
-      }
-
-      $('#messageBox').val('');
-      event.preventDefault();
-      event.stopPropagation();
-  }
 
   //Send Action
   Template.entry.events['click #clear-messages'] = function() {
@@ -91,12 +92,6 @@ if(Meteor.isClient) {
     return false;
   };
 
-  //Users name list loaging
-  Template.users_names.users = function () {
-    var users = Users.find({name: { $exists: true }}, { sort: {name: 1} });
-    return users;
-  };
-
   //New User registration  
   Template.register.events = {
     'submit form': function (event) {
@@ -122,6 +117,20 @@ if(Meteor.isClient) {
     }
   };
 
+  Template.chat.events = {
+    'click #logout-btn': function(event) {
+      Session.set('user_id', null);
+      Session.set('verified', false);
+      Template.register.signed_in;
+    }
+  };
+
+  //Users name list loaging
+  Template.users_names.users = function () {
+    var users = Users.find({name: { $exists: true }}, { sort: {name: 1} });
+    return users;
+  };
+
   //Warnings action
   Template.register.warning = function (warning) {
       $('#warning').text(warning);
@@ -140,6 +149,10 @@ if(Meteor.isClient) {
       }
     }, 1000);
 }
+
+
+
+
 
 if (Meteor.is_server) {
   //Disable client db
