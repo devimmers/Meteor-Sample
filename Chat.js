@@ -2,6 +2,10 @@ Messages = new Meteor.Collection('messages');
 Users = new Meteor.Collection("users");
 
 if(Meteor.isClient){
+  
+  Meteor.subscribe("messages");
+  Meteor.subscribe("users");
+
   ////////// Helpers for in-place editing //////////
 
   // Returns an event_map key for attaching "ok/cancel" events to
@@ -51,24 +55,42 @@ if(Meteor.isClient){
   //Send message function
   function sendMessage(text) {
       var ts = new Date().toLocaleTimeString();    
-      Messages.insert({name: Session.get("user"), message:text, time: ts });
+      
+      if (text !== '') {
+        var user = Users.findOne(Session.get("user_id"));
+        
+        Meteor.call('add_msg', Session.get("user_id"), text);
+      }
+
+      $('#messageBox').val('');
+      event.preventDefault();
+      event.stopPropagation();
   }
 
     //Send Action
   Template.entry.events['click #clear-messages'] = function() {
     if (confirm('Are you sure you want to remove all todo items from the current list? This action cannot be undone.')) {
        console.log("clear");
-      Messages.remove();
-      Template.messages.messages = function() {
-        return null;
-      }
     }
   };
 
 
   Template.register.signed_in = Template.chat.signed_in = function () {
-    var logged_in = (Session.get("user") ? true : false);
-    return logged_in;
+    var user_id = Session.get("user_id"),
+    verified = Session.get("verified");
+
+    if (verified) {
+      return true;
+    }
+
+    if (user_id) {
+      if (Users.findOne(user_id)) {
+        Session.set("verified", true);
+        return true;
+      }
+    }
+
+    return false;
   };
 
   Template.users_names.users = function () {
@@ -81,15 +103,20 @@ if(Meteor.isClient){
       var registerbox = $('#register'),
           username = registerbox.val(),
           now = (new Date()).getTime();
-                
+
       if (username === "") {
         Session.set('warning', 'Please enter a valid username.');
       } else if (Users.findOne({name: username})) {
         Session.set('warning', 'Username is already taken. Please choose another.');
       } else {
-        Session.set('warning', null);
-        Session.set("user", username);
-        Users.insert({name: username, last_seen: now});
+         Meteor.call('add_user', username, function (error, result) {
+          if (error) {
+            alert(error);
+          } else {
+            Session.set("user_id", result);
+            Session.set("init_chat", true);
+          }
+        });
       }      
      
       event.preventDefault();
@@ -107,15 +134,36 @@ if(Meteor.isClient){
   }
 
   Meteor.setInterval(function () {
-      var username = Session.get('user');
-      Meteor.call('keepalive', username);
+    var user_id = Session.get('user_id');
+      if (user_id) {
+        Meteor.call('keepalive', user_id);
+      }
     }, 1000);
   
 
 }
 
 if (Meteor.is_server) {
-   Meteor.startup(function () {});
+
+  function disableClientMongo() {
+    _.each(['messages', 'users'], function(collection) {
+      _.each(['insert', 'update', 'remove'], function(method) {
+        Meteor.default_server.method_handlers['/' + collection + '/' + method] = function() {};
+      });
+    });
+  };
+
+   Meteor.startup(function () {
+        disableClientMongo();
+   });
+
+    Meteor.publish("messages", function () {
+      return Messages.find();
+    });
+
+    Meteor.publish("users", function () {
+      return Users.find();
+    });
 
    Meteor.setInterval(function () {
     var now = (new Date()).getTime();
@@ -126,18 +174,27 @@ if (Meteor.is_server) {
   });
 
   Meteor.methods({
-    keepalive: function (user) { 
+    keepalive: function (user_id) { 
       if (user == null) {
           return;
       }
 
       var now = (new Date()).getTime();
 
-      if (!Users.findOne({name: user})) {
-        Users.insert({name: user, last_seen: now});
+      if (Users.findOne(user_id)) {
+        Users.update(user_id, {$set: {last_seen: now}});
       }
-
-      Users.update({name: user}, {$set: {last_seen: now}});
+    },
+    add_user: function(username) {
+      var now = (new Date()).getTime();
+      var user_id = Users.insert({name: username, last_seen: now});
+    
+      return user_id;
+    },
+    add_msg: function (user_id, msg) {
+      if (user = Users.findOne(user_id)) {
+        Messages.insert({name: user.name, message: msg, time: new Date().toLocaleTimeString()});
+      }
     }
   });
 
