@@ -11,15 +11,18 @@
 
 
 <template name="chat">
-    <div class="span5">
-        <div style="float: right">
+    <div class="row">
+        <div class="span2 pull-right">
           {{loginButtons align="right"}}
         </div>
     </div>
 	{{#if currentUser}}
-		<div class="span3">{{> users_names}}</div>
+		<diw class="row-fluid">
+			<div class="span3">{{> users_names}}</div>
 
-		<div class="span9">{{> messages}}</div>
+			<div class="span9">{{> messages}}</div>
+
+		</diw>
 		<div class="row">
 			<div class="span12">{{> entry}}</div>
 		</div>
