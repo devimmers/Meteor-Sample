@@ -45,7 +45,7 @@ if(Meteor.isClient) {
       var ts = new Date().toLocaleTimeString();    
       
       if (text !== '') {        
-        Meteor.call('add_msg', Session.get("user_id"), text);
+        Meteor.call('add_msg', text);
       }
 
       $('#messageBox').val('');
@@ -146,8 +146,8 @@ if (Meteor.is_server) {
 
   //Server Methods
   Meteor.methods({
-    add_msg: function (user_id, msg) {
-        Messages.insert({name: user.name, message: msg, time: new Date().toLocaleTimeString()});
+    add_msg: function (msg) {
+        Messages.insert({name: Meteor.user().emails[0].address, message: msg, time: new Date().toLocaleTimeString()});
     },
   });
 
