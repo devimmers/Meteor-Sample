@@ -50,11 +50,8 @@ if(Meteor.isClient){
 
   //Send message function
   function sendMessage(text) {
-      var nameEntry = document.getElementById('name');
-      var ts = new Date().toLocaleTimeString();
-      if (nameEntry.value) {          
-          Messages.insert({name:nameEntry.value, message:text, time: ts });
-      }
+      var ts = new Date().toLocaleTimeString();    
+      Messages.insert({name: Session.get("user"), message:text, time: ts });
   }
 
     //Send Action
@@ -74,35 +71,74 @@ if(Meteor.isClient){
     return logged_in;
   };
 
-  Template.chat.users = function () {
+  Template.users_names.users = function () {
     var users = Users.find({name: { $exists: true }}, { sort: {name: 1} });
     return users;
   };
 
-   Template.register.events = {
+  Template.register.events = {
     'submit form': function (event) {
       var registerbox = $('#register'),
           username = registerbox.val(),
           now = (new Date()).getTime();
-      
-      Session.set("user", username);
-      Users.insert({name: username, last_seen: now});
+                
+      if (username === "") {
+        Session.set('warning', 'Please enter a valid username.');
+      } else if (Users.findOne({name: username})) {
+        Session.set('warning', 'Username is already taken. Please choose another.');
+      } else {
+        Session.set('warning', null);
+        Session.set("user", username);
+        Users.insert({name: username, last_seen: now});
+      }      
      
       event.preventDefault();
       event.stopPropagation();
     }      
-
   };
 
-
+  Template.register.warning = function () {
+    return Session.get('warning');
+  };
 
   //Show all messages
   Template.messages.messages = function () {
     return Messages.find({}, {sort:{time:-1}});
   }
+
+  Meteor.setInterval(function () {
+      var username = Session.get('user');
+      Meteor.call('keepalive', username);
+    }, 1000);
+  
+
 }
 
 if (Meteor.is_server) {
-
    Meteor.startup(function () {});
+
+   Meteor.setInterval(function () {
+    var now = (new Date()).getTime();
+
+    Users.find({last_seen: {$lt: (now - 60 * 1000)}}).forEach(function (user) {
+      Users.remove(user._id)
+    });
+  });
+
+  Meteor.methods({
+    keepalive: function (user) { 
+      if (user == null) {
+          return;
+      }
+
+      var now = (new Date()).getTime();
+
+      if (!Users.findOne({name: user})) {
+        Users.insert({name: user, last_seen: now});
+      }
+
+      Users.update({name: user}, {$set: {last_seen: now}});
+    }
+  });
+
 }

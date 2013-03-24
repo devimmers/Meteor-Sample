@@ -21,7 +21,7 @@
 
 <template name="chat">
 	{{#if signed_in}}
-		{{> users}}
+		{{> users_names}}
 		{{> messages}}
 		{{> entry}}
 	{{/if}}
@@ -29,14 +29,13 @@
 
 <template name="entry">
 	<p>
-		<input type="text" id="name" placeholder="Your Name" />
 		<input type="text" id="messageBox" placeholder="Your Message" />
 		<button id="send-message">Send</button>
 		<button id="clear-messages">Clear</button>
 	</p>
 </template>
 
-<template name="users">
+<template name="users_names">
     <div id="users">
       {{#each users}}
         {{name}}<br />
