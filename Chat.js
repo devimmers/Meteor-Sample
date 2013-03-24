@@ -1,7 +1,7 @@
 Messages = new Meteor.Collection('messages');
 Users = new Meteor.Collection("users");
 
-if(Meteor.isClient){
+if(Meteor.isClient) {
   
   Meteor.subscribe("messages");
   Meteor.subscribe("users");
@@ -56,9 +56,7 @@ if(Meteor.isClient){
   function sendMessage(text) {
       var ts = new Date().toLocaleTimeString();    
       
-      if (text !== '') {
-        var user = Users.findOne(Session.get("user_id"));
-        
+      if (text !== '') {        
         Meteor.call('add_msg', Session.get("user_id"), text);
       }
 
@@ -67,14 +65,14 @@ if(Meteor.isClient){
       event.stopPropagation();
   }
 
-    //Send Action
+  //Send Action
   Template.entry.events['click #clear-messages'] = function() {
     if (confirm('Are you sure you want to remove all todo items from the current list? This action cannot be undone.')) {
        console.log("clear");
     }
   };
 
-
+  //Login check
   Template.register.signed_in = Template.chat.signed_in = function () {
     var user_id = Session.get("user_id"),
     verified = Session.get("verified");
@@ -93,39 +91,40 @@ if(Meteor.isClient){
     return false;
   };
 
+  //Users name list loaging
   Template.users_names.users = function () {
     var users = Users.find({name: { $exists: true }}, { sort: {name: 1} });
     return users;
   };
 
+  //New User registration  
   Template.register.events = {
     'submit form': function (event) {
       var registerbox = $('#register'),
           username = registerbox.val(),
           now = (new Date()).getTime();
 
-      if (username === "") {
-        Session.set('warning', 'Please enter a valid username.');
-      } else if (Users.findOne({name: username})) {
-        Session.set('warning', 'Username is already taken. Please choose another.');
-      } else {
-         Meteor.call('add_user', username, function (error, result) {
-          if (error) {
-            alert(error);
+      Meteor.call('add_user', username, function (error, result) {
+        if (error) {
+          alert(error);
+        } else {
+          if (result.warning) {
+            Session.set("warning", result.warning);
+            Template.register.warning(result.warning);
           } else {
-            Session.set("user_id", result);
-            Session.set("init_chat", true);
+            Session.set("user_id", result.user_id);
           }
-        });
-      }      
-     
+        }
+      });
+
       event.preventDefault();
       event.stopPropagation();
-    }      
+    }
   };
 
-  Template.register.warning = function () {
-    return Session.get('warning');
+  //Warnings action
+  Template.register.warning = function (warning) {
+      $('#warning').text(warning);
   };
 
   //Show all messages
@@ -133,18 +132,17 @@ if(Meteor.isClient){
     return Messages.find({}, {sort:{time:-1}});
   }
 
+  //Checking for leaving users
   Meteor.setInterval(function () {
     var user_id = Session.get('user_id');
       if (user_id) {
         Meteor.call('keepalive', user_id);
       }
     }, 1000);
-  
-
 }
 
 if (Meteor.is_server) {
-
+  //Disable client db
   function disableClientMongo() {
     _.each(['messages', 'users'], function(collection) {
       _.each(['insert', 'update', 'remove'], function(method) {
@@ -157,15 +155,17 @@ if (Meteor.is_server) {
         disableClientMongo();
    });
 
-    Meteor.publish("messages", function () {
-      return Messages.find();
-    });
+  //Publish Messages and Users list 
+  Meteor.publish("messages", function () {
+    return Messages.find();
+  });
 
-    Meteor.publish("users", function () {
-      return Users.find();
-    });
+  Meteor.publish("users", function () {
+    return Users.find();
+  });
 
-   Meteor.setInterval(function () {
+  //Remove old users
+  Meteor.setInterval(function () {
     var now = (new Date()).getTime();
 
     Users.find({last_seen: {$lt: (now - 60 * 1000)}}).forEach(function (user) {
@@ -173,9 +173,10 @@ if (Meteor.is_server) {
     });
   });
 
+  //Server Methods
   Meteor.methods({
     keepalive: function (user_id) { 
-      if (user == null) {
+      if (user_id == null) {
           return;
       }
 
@@ -186,10 +187,21 @@ if (Meteor.is_server) {
       }
     },
     add_user: function(username) {
-      var now = (new Date()).getTime();
-      var user_id = Users.insert({name: username, last_seen: now});
-    
-      return user_id;
+     var now = (new Date()).getTime(),
+          user_id = null,
+          warning = null;
+      
+      if (username === "") {
+        warning = 'Please enter a valid username.';
+      } else if (username === undefined) {
+        warning = 'An error occurred. Please try again.';
+      } else if (Users.findOne({name: username})) {
+        warning = 'Username is already taken. Please choose another.';
+      } else {
+        user_id = Users.insert({name: username, last_seen: now});
+      }
+
+      return {user_id: user_id, warning: warning};
     },
     add_msg: function (user_id, msg) {
       if (user = Users.findOne(user_id)) {
