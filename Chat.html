@@ -16,14 +16,14 @@
           {{loginButtons align="right"}}
         </div>
     </div>
+	{{#if currentUser}}
+		<div class="span3">{{> users_names}}</div>
 
-    {{#unless signed_in}}
 		<div class="span9">{{> messages}}</div>
-		</div>
 		<div class="row">
 			<div class="span12">{{> entry}}</div>
 		</div>
-    {{/unless}}
+	{{/if}}
 </template>
 
 <template name="entry">

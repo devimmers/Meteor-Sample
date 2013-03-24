@@ -1,8 +1,11 @@
 Messages = new Meteor.Collection('messages');
+OnlineUsersCollection = new Meteor.Collection('OnlineUsersCollection');
+OnlineUsersName = new Meteor.Collection('OnlineUsersName');
 
 if(Meteor.isClient) {
 
-  var subscr = Meteor.subscribe("messages");
+   Meteor.subscribe("messages");
+   Meteor.subscribe('users');
 
   _(Template).extend({
 
@@ -36,14 +39,6 @@ if(Meteor.isClient) {
     //Chat View
 
     chat: {
-
-      signed_in: function () {
-        if(Meteor.userId() != null) {
-          return false; 
-        } 
-        return true;
-      },
-
       events: {
         'click #logout-btn': function(event) {
           Session.set('user_id', null);
@@ -69,29 +64,25 @@ if(Meteor.isClient) {
         }
       }
     },
-  
-  //Users name list loaging
-/*  Template.users_names.users = function () {
-    var users = Users.find({name: { $exists: true }}, { sort: {name: 1} });
-    return users;
-  };
-*/
+
+    users_names: users = function () {
+      if(OnlineUsersCollection.find() != undefined) {
+          OnlineUsersCollection.find().forEach(function(user) {
+           // var userID = user.userID;
+            var name = Meteor.users.find({_id:user.userID}).emails[0].address;
+            OnlineUsersName.insert({name:name});
+          });
+        return OnlineUsersName;
+      }
+      return 'Well well well...';
+    },
+
   //Show all messages
     messages: messages = function () {
       return Messages.find({}, {sort:{time:-1}});
     }
-
   });
 
-
-
-  //Checking for leaving users
-  Meteor.setInterval(function () {
-    var user_id = Session.get('user_id');
-      if (user_id) {
-        Meteor.call('keepalive', user_id);
-      }
-    }, 1000);
 }
 
 
@@ -126,5 +117,42 @@ if (Meteor.is_server) {
         Messages.insert({name: Meteor.user().emails[0].address, message: msg, time: new Date().toLocaleTimeString()});
     },
   });
+
+    Meteor.publish("users", function() {
+        return OnlineUsersCollection.find({});
+    });
+
+    // Online users (from https://github.com/murilopolese/howmanypeoplearelooking)
+    OnlineUsersCollection.remove({});
+    Meteor.default_server.stream_server.register( Meteor.bindEnvironment( function(socket) {
+        var intervalID = Meteor.setInterval(function() {
+            if (socket.meteor_session) {
+
+                var connection = {
+                    connectionID: socket.meteor_session.id,
+                    connectionAddress: socket.address,
+                    userID: socket.meteor_session.userId
+                };
+
+                socket.id = socket.meteor_session.id;
+
+                OnlineUsersCollection.insert(connection);
+
+                Meteor.clearInterval(intervalID);
+            }
+        }, 1000);
+
+        socket.on('close', Meteor.bindEnvironment(function () {
+            OnlineUsersCollection.remove({
+                connectionID: socket.id
+            });
+        }, function(e) {
+            Meteor._debug("Exception from connection close callback:", e);
+        }));
+    }, function(e) {
+        Meteor._debug("Exception from connection registration callback:", e);
+    }));
+
+
 
 }
