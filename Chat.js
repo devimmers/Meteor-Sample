@@ -18,8 +18,7 @@ if(Meteor.isClient) {
           if (e.type === "keyup" || e.type === "keydown" && e.which !== 13)
             return;
 
-          var ts  = new Date().toLocaleTimeString(),
-              msg = $('#messageBox');
+          var msg = $('#messageBox');
           
           if (msg.val() !== '') {        
             Meteor.call('add_msg', msg.val());
@@ -62,20 +61,22 @@ if(Meteor.isClient) {
           message.focus();
           message.setSelectionRange(name.length+2,name.length+2);
         }
+      },
+      
+      users: function () {
+        if(OnlineUsersCollection.find() != undefined) {
+            OnlineUsersCollection.find().forEach(function(user) {
+             // var userID = user.userID;
+              var name = Meteor.users.find({_id:user.userID}).emails[0].address;
+              OnlineUsersName.insert({name:name});
+            });
+          return OnlineUsersName;
+        }
+        return 'Well well well...';
       }
+      
     },
 
-    users_names: users = function () {
-      if(OnlineUsersCollection.find() != undefined) {
-          OnlineUsersCollection.find().forEach(function(user) {
-           // var userID = user.userID;
-            var name = Meteor.users.find({_id:user.userID}).emails[0].address;
-            OnlineUsersName.insert({name:name});
-          });
-        return OnlineUsersName;
-      }
-      return 'Well well well...';
-    },
 
   //Show all messages
     messages: messages = function () {
