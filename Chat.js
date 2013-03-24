@@ -125,6 +125,17 @@ if(Meteor.isClient) {
     }
   };
 
+  //Whisper Action
+  Template.users_names.events = {
+    'click #users a': function(event) {
+      var message = document.getElementById('messageBox'),
+          name    = event.currentTarget.getAttribute("href");
+      message.value = name + ': ';
+      message.focus();
+      message.setSelectionRange(name.length+2,name.length+2);
+    }
+  };
+
   //Users name list loaging
   Template.users_names.users = function () {
     var users = Users.find({name: { $exists: true }}, { sort: {name: 1} });
