@@ -4,45 +4,23 @@
 
 <body>
   <div class="container">
-			{{> register}}
       {{> chat}}
     </div>
   </div>
 </body>
 
-<template name="register">
-  {{#unless signed_in}}
-  <div id="register_window">
-    <form id="register_form">
-      <div id="warning">{{warning}}</div>
-      <div class="control-group">
-        <label>Username: </label>
-          <div class="controls">
-            <div class="input-append">
-              <input type="text" id="register" placeholder="Enter Username" />
-              <button id="login-btn" class="btn btn-success">Login</button>
-            </div>
-          </div>
-      </div>
-    </form>
-  </div>
-  {{/unless}}
-</template>
 
 <template name="chat">
-	{{#if signed_in}}
-		<div class="row">
-			<div class="span3">{{> users_names}}
-				<div>
-					<button type="button" id="logout-btn" class="btn">Logout</button>
-				</div>
-			</div>
-			<div class="span9">{{> messages}}</div>
-		</div>
-		<div class="row">
-			<div class="span12">{{> entry}}</div>
-		</div>
-	{{/if}}
+    <div class="span5">
+        <div style="float: right">
+          {{loginButtons align="right"}}
+        </div>
+    </div>
+	<div class="span9">{{> messages}}</div>
+	</div>
+	<div class="row">
+		<div class="span12">{{> entry}}</div>
+	</div>
 </template>
 
 <template name="entry">
