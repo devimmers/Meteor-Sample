@@ -4,9 +4,8 @@
 
 <body>
   <div class="container">
-    <div class="row">
-      <div class="span4">{{> register}}</div>
-      <div class="span8">{{> chat}}</div>
+			{{> register}}
+      {{> chat}}
     </div>
   </div>
 </body>
@@ -32,15 +31,19 @@
 
 <template name="chat">
 	{{#if signed_in}}
-		{{> users_names}}
-		{{> messages}}
-		{{> entry}}
+		<div class="row">
+			<div class="span3">{{> users_names}}</div>
+			<div class="span9">{{> messages}}</div>
+		</div>
+		<div class="row">
+			<div class="span12">{{> entry}}</div>
+		</div>
 	{{/if}}
 </template>
 
 <template name="entry">
 	<div class="input-append">
-		<input type="text" id="messageBox" placeholder="Your Message" class="span6"/>
+		<input type="text" id="messageBox" placeholder="Your Message" class="span12"/>
 		<button id="send-message" class="btn btn-primary">Send</button>
 		<button id="clear-messages" class="btn">Clear</button>
 	</div>
@@ -48,9 +51,12 @@
 
 <template name="users_names">
     <div id="users">
-      {{#each users}}
-        {{name}}<br />
-      {{/each}}
+    	<h3>Users online</h3>
+    	<ul class="nav nav-pills nav-stacked">
+	      {{#each users}}
+	      <li><a href="#{{name}}" title="Whisper to {{name}}">{{name}}</a></li>
+	      {{/each}}
+    	</ul>
     </div>
 </template>
 
