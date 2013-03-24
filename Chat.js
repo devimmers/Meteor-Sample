@@ -32,6 +32,14 @@ if(Meteor.isClient) {
     };
   };
 
+   Template.chat.signed_in = function () {
+      if(Meteor.userId() != null) {
+        return false; 
+      } 
+      return true;
+   };
+
+
   //Send message function
   function sendMessage(text) {
       var ts = new Date().toLocaleTimeString();    
