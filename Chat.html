@@ -20,9 +20,11 @@
 </template>
 
 <template name="chat">
-	{{> users}}
-	{{> messages}}
-	{{> entry}}
+	{{#if signed_in}}
+		{{> users}}
+		{{> messages}}
+		{{> entry}}
+	{{/if}}
 </template>
 
 <template name="entry">

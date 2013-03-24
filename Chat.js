@@ -1,4 +1,5 @@
 Messages = new Meteor.Collection('messages');
+Users = new Meteor.Collection("users");
 
 if(Meteor.isClient){
   ////////// Helpers for in-place editing //////////
@@ -67,18 +68,41 @@ if(Meteor.isClient){
     }
   };
 
-  var listsHandle = Meteor.subscribe('messages', function () {
-  // if (!Session.get('list_id')) {
-    //var list = Lists.findOne({}, {sort: {name: 1}});
-   // if (list)
-    //  Router.setList(list._id);
-  //}
-  });
+
+  Template.register.signed_in = Template.chat.signed_in = function () {
+    var logged_in = (Session.get("user") ? true : false);
+    return logged_in;
+  };
+
+  Template.chat.users = function () {
+    var users = Users.find({name: { $exists: true }}, { sort: {name: 1} });
+    return users;
+  };
+
+   Template.register.events = {
+    'submit form': function (event) {
+      var registerbox = $('#register'),
+          username = registerbox.val(),
+          now = (new Date()).getTime();
+      
+      Session.set("user", username);
+      Users.insert({name: username, last_seen: now});
+     
+      event.preventDefault();
+      event.stopPropagation();
+    }      
+
+  };
+
 
 
   //Show all messages
   Template.messages.messages = function () {
     return Messages.find({}, {sort:{time:-1}});
   }
+}
 
+if (Meteor.is_server) {
+
+   Meteor.startup(function () {});
 }
