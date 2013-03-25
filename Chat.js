@@ -6,6 +6,8 @@ if(Meteor.isClient) {
 
    Meteor.subscribe("messages");
    Meteor.subscribe('users');
+   Meteor.subscribe("userData");
+
 
   _(Template).extend({
 
@@ -30,18 +32,14 @@ if(Meteor.isClient) {
         'click #clear-messages': function() {
           if (confirm('Are you sure you want to remove all todo items from the current list? This action cannot be undone.')) {
              console.log("clear");
-              
-              OnlineUsersCollection.find().forEach(function(user) {
-                // var userID = user.userID; 
-              
+               OnlineUsersCollection.find().forEach(function(user) {
               var user = Meteor.users.findOne({_id:user.userID});
               if(user != undefined) {
                 var name = user.emails[0].address;
-                OnlineUsersName.insert({name:name});
+                OnlineUsersName.insert({user_name:name});
               }               
-
-              });
-
+            });
+            return OnlineUsersName;
           }
         }
       }
@@ -75,19 +73,21 @@ if(Meteor.isClient) {
         }
       },
       
-      users: function () {
+      users_names: users_collection = function () {
+
         if(OnlineUsersCollection.find() != undefined) {
             OnlineUsersCollection.find().forEach(function(user) {
-             // var userID = user.userID; 
-              var user = Meteor.users.find({_id:user.userID});
-              if(user.emails != undefined) {
+              var user = Meteor.users.findOne({_id:user.userID});
+              if(user != undefined) {
                 var name = user.emails[0].address;
-              }
-              OnlineUsersName.insert({name:name});
+                if (OnlineUsersName.findOne({user_name:name}) === undefined) {
+                  OnlineUsersName.insert({user_name:name});
+                };
+              }               
             });
-          return OnlineUsersName;
         }
-        return 'Well well well...';
+
+        return OnlineUsersName.find({});
       }
       
     },
@@ -137,7 +137,10 @@ if (Meteor.is_server) {
     Meteor.publish("users", function() {
         return OnlineUsersCollection.find({});
     });
-
+    
+    Meteor.publish("userData", function () {
+      return Meteor.users.find({});
+    });
     // Online users (from https://github.com/murilopolese/howmanypeoplearelooking)
     OnlineUsersCollection.remove({});
     Meteor.default_server.stream_server.register( Meteor.bindEnvironment( function(socket) {

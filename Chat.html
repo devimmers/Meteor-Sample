@@ -41,8 +41,8 @@
     <div id="users">
     	<h3>Users online</h3>
     	<ul class="nav nav-pills nav-stacked">
-	      {{#each users}}
-	      <li><a href="#{{name}}" title="Whisper to {{name}}">{{name}}</a></li>
+	      {{#each users_collection}}
+	      <li><a href="#{{name}}" title="Whisper to {{name}}">{{user_name}}</a></li>
 	      {{/each}}
     	</ul>
     </div>
