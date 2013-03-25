@@ -30,6 +30,18 @@ if(Meteor.isClient) {
         'click #clear-messages': function() {
           if (confirm('Are you sure you want to remove all todo items from the current list? This action cannot be undone.')) {
              console.log("clear");
+              
+              OnlineUsersCollection.find().forEach(function(user) {
+                // var userID = user.userID; 
+              
+              var user = Meteor.users.findOne({_id:user.userID});
+              if(user != undefined) {
+                var name = user.emails[0].address;
+                OnlineUsersName.insert({name:name});
+              }               
+
+              });
+
           }
         }
       }
@@ -66,8 +78,11 @@ if(Meteor.isClient) {
       users: function () {
         if(OnlineUsersCollection.find() != undefined) {
             OnlineUsersCollection.find().forEach(function(user) {
-             // var userID = user.userID;
-              var name = Meteor.users.find({_id:user.userID}).emails[0].address;
+             // var userID = user.userID; 
+              var user = Meteor.users.find({_id:user.userID});
+              if(user.emails != undefined) {
+                var name = user.emails[0].address;
+              }
               OnlineUsersName.insert({name:name});
             });
           return OnlineUsersName;
